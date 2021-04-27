@@ -1,14 +1,33 @@
 const errorTypes = require('../constants/error-types')
+const service = require('../service/user.service')
+const md5Password = require('../utils/password-handle')
 
 const verifyUser = async (ctx,next) => {
-
-  const {name,password} = ctx.requst.body
+  console.log(ctx.request.body)
+  const {name,password} = ctx.request.body
   
-  if(!name || !password || name === '' || password === '') {
+  if(!name || !password) {
     const error = new Error(errorTypes.NAME_OR_PASSWORD_IS_REQUIRED)
-    ctx.app.emit('error',error,ctx)
+    return ctx.app.emit('error',error,ctx)
+  }
+
+  const result = await service.getUserByName(name)
+
+  if(result.length) {
+    const error = new Error(errorTypes.USER_ALREADY_EXISTS)
+
+    return ctx.app.emit('error',error,ctx)
   }
   await next()
 }
 
-module.exports = {verifyUser}
+const handlePassword = async (ctx,next) => {
+  let { password } = ctx.request.body
+  ctx.request.body.password = md5Password(password)
+
+  await next()
+}
+module.exports = { 
+  verifyUser,
+  handlePassword
+}

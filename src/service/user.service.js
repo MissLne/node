@@ -6,7 +6,14 @@ class UserService {
     const statement = `INSERT INTO user (name,password) VALUES (?, ?);`
     const result = await connection.execute(statement,[name,password])
 
-    return result
+    return result[0]
+  }
+
+  async getUserByName(name) {
+    const statement = `SELECT * FROM user WHERE name = ?;`
+    const result = await connection.execute(statement,[name])
+
+    return result[0]
   }
 }
 
