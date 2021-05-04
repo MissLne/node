@@ -3,7 +3,6 @@ const service = require('../service/user.service')
 const md5Password = require('../utils/password-handle')
 
 const verifyUser = async (ctx,next) => {
-  console.log(ctx.request.body)
   const {name,password} = ctx.request.body
   
   if(!name || !password) {

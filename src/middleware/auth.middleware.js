@@ -1,6 +1,9 @@
 const errorTypes = require('../constants/error-types')
 const service = require('../service/user.service')
 const md5Password = require('../utils/password-handle')
+const {PUBLIC_KEY} = require('../app/config')
+const jwt = require('jsonwebtoken')
+
 const verifyLogin = async (ctx,next) => {
   const { name,password } = ctx.request.body
   //密码账号不能为空
@@ -22,9 +25,30 @@ const verifyLogin = async (ctx,next) => {
     const error = new Error(errorTypes.PASSWORD_ERROR)
     return ctx.app.emit('error',error,ctx)
   }
+  ctx.user = user
   await next()
 }
 
+const verifyAuth = async(ctx,next) => {
+  const authorization = ctx.headers.authorization
+  const token  = authorization.replace('Bearer ', '')
+  if(!authorization) {
+    const error = new Error(errorTypes.NO_AUTHORIZATION)
+    return ctx.app.emit('error',error,ctx)
+  }
+  try {
+    const result = jwt.verify(token,PUBLIC_KEY, {
+      algorithms: ["RS256"]
+    })
+    ctx.user = result
+    await next()
+  } catch (err) {
+    const error = new Error(errorTypes.NO_AUTHORIZATION)
+    return ctx.app.emit('error',error,ctx)
+  }
+}
+
 module.exports = {
-  verifyLogin
+  verifyLogin,
+  verifyAuth
 }

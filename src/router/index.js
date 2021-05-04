@@ -1,5 +1,4 @@
 const fs = require('fs')
-const userRouter = require('./user.router')
 
 const useRouter = (app) => {
   fs.readdirSync(__dirname).forEach(file => {
