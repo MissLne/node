@@ -1,5 +1,6 @@
 const errorTypes = require('../constants/error-types')
-const service = require('../service/user.service')
+const userService = require('../service/user.service')
+const authService = require('../service/auth.service')
 const md5Password = require('../utils/password-handle')
 const {PUBLIC_KEY} = require('../app/config')
 const jwt = require('jsonwebtoken')
@@ -12,7 +13,7 @@ const verifyLogin = async (ctx,next) => {
     return ctx.app.emit('error',error,ctx)
   }
   //用户名不存在
-  const result = await service.getUserByName(name)
+  const result = await userService.getUserByName(name)
   const user = result[0]
 
   if(!user) {
@@ -48,7 +49,23 @@ const verifyAuth = async(ctx,next) => {
   }
 }
 
+const verifyPermission = async (ctx,next) => {
+  const {momentId} = ctx.params
+  const {id} = ctx.user
+  try {
+    const isPermission = await authService.checkMoment(momentId,id)
+    if(!isPermission) throw new Error()
+    await next()
+  } catch {
+    const error = new Error(errorTypes.NO_PERMISSION)
+    return ctx.app.emit('error',error,ctx)
+  }
+}
+const aa = async (ctx,next) => {}
+
 module.exports = {
   verifyLogin,
-  verifyAuth
+  verifyAuth,
+  verifyPermission,
+  aa
 }
